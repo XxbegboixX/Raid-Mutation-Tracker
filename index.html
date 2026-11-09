@@ -49,6 +49,21 @@ a.lnk:hover{filter:brightness(1.15) drop-shadow(0 0 10px currentColor);transform
 a.lnk:focus-visible{outline:3px solid var(--upd);outline-offset:3px}
 a.discord{background:var(--mut)}
 a.game{background:var(--raid);color:#fff}
+.tabs{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap}
+.tab{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px;padding:10px 20px}
+.tab[aria-selected=true]{background:var(--raid);border-color:var(--raid);color:#fff}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-top:16px}
+.card.vid{--c:var(--mut);padding:14px 14px 16px}
+.card.vid:nth-child(3n+2){--c:var(--raid)} .card.vid:nth-child(3n){--c:var(--upd)}
+.vthumb,.vframe{display:block;width:100%;aspect-ratio:9/16;border:0;margin:0 0 12px;background:linear-gradient(160deg,#1a0a2e,#05050d);clip-path:none}
+.vthumb{position:relative;cursor:pointer;padding:0;border:1px solid var(--c)}
+.vthumb:hover{background:linear-gradient(160deg,#2a0f45,#0a0a1c);color:inherit}
+.vthumb .num{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:13px;color:var(--c)}
+.vthumb .play{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:2px solid var(--c);border-radius:50%;box-shadow:0 0 18px var(--c)}
+.vthumb .play::after{content:"";position:absolute;left:25px;top:18px;border-left:20px solid var(--c);border-top:13px solid transparent;border-bottom:13px solid transparent}
+.card.vid h3{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;line-height:1.2;margin:0 0 8px}
+.card.vid a{color:var(--c);font-size:15px;font-weight:700}
+.vnote{color:var(--dim);font-size:15px;max-width:720px;margin:0;border-left:3px solid var(--upd);padding-left:12px}
 .clock{display:flex;gap:18px;flex-wrap:wrap;color:var(--dim);font-size:15px;margin-bottom:20px}
 .clock b{color:var(--mut);font-weight:700;font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
@@ -120,6 +135,12 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     <a class="lnk discord" href="https://discord.gg/defeatanimerng" target="_blank" rel="noopener noreferrer">Join our Discord</a>
     <a class="lnk game" href="https://www.roblox.com/games/92606991708989/Defeat-Anime-RNG" target="_blank" rel="noopener noreferrer">Play Defeat Anime RNG</a>
   </nav>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="timers" aria-selected="true">Timers</button>
+    <button class="tab" role="tab" data-tab="videos" aria-selected="false">TikTok Videos</button>
+  </div>
+
+  <div id="tabTimers">
   <div class="clock">
     <div>Server time (UTC+8): <b id="srv">--:--:--</b></div>
     <div>Your time: <b id="loc">--:--:--</b></div>
@@ -214,6 +235,14 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     <h3>Upcoming raids (your time)</h3>
     <ul id="list"></ul>
   </section>
+  </div>
+
+  <div id="tabVideos" hidden>
+    <p class="sub" style="margin-top:0">Guides and updates from eme_ni_emerot. Tap a video to play it here.</p>
+    <p><a class="lnk game" href="https://www.tiktok.com/@eme_ni_emerot" target="_blank" rel="noopener noreferrer">Follow on TikTok</a></p>
+    <p class="vnote">Video says "This content is blocked"? Your browser's ad or tracker blocker is blocking TikTok. Turn the blocker off for this site (in Vivaldi, click the shield icon in the address bar), or use the "Open on TikTok" link under each video.</p>
+    <div class="vgrid" id="vgrid"></div>
+  </div>
 
 </div>
 
@@ -450,6 +479,38 @@ function buildList() {
     return `<li><span>${day} ${loc(t)}</span><span>${srv(t)} server</span></li>`;
   }).join('');
 }
+const VIDEOS = [
+  {id: '7695336499650235669', t: 'DEFEAT ANIME RNG | TOP 4 DPS LINEUP GUIDE'},
+  {id: '7696185489103146248', t: 'Weather Update!'},
+  {id: '7697912018031955201', t: 'Best Raid Team Without Exclusives!'},
+  {id: '7698458847907695879', t: 'Accessories In-Depth Explanation'},
+  {id: '7699056384943443207', t: 'Dark Griffith the BEST DPS in Defeat Anime RNG?'},
+  {id: '7705020944040856852', t: 'MOB &amp; GAROU EVOLUTION GUIDE!'}
+];
+function buildVideos() {
+  $('vgrid').innerHTML = VIDEOS.map((v, i) => `<article class="card vid">
+    <button class="vthumb" data-i="${i}" aria-label="Play: ${v.t}"><span class="num">#${i + 1}</span><span class="play"></span></button>
+    <h3>${v.t}</h3>
+    <a href="https://www.tiktok.com/@eme_ni_emerot/video/${v.id}" target="_blank" rel="noopener noreferrer">Open on TikTok</a>
+  </article>`).join('');
+}
+$('vgrid').addEventListener('click', e => {
+  const b = e.target.closest('.vthumb'); if (!b) return;
+  const v = VIDEOS[+b.dataset.i], f = document.createElement('iframe');
+  f.src = `https://www.tiktok.com/player/v1/${v.id}?autoplay=1&music_info=1&description=0&rel=0`;
+  f.allow = 'autoplay; fullscreen; encrypted-media'; f.allowFullscreen = true;
+  f.title = v.t.replace(/&amp;/g, '&'); f.className = 'vframe';
+  b.replaceWith(f);
+});
+function showTab(n) {
+  $('tabTimers').hidden = n !== 'timers'; $('tabVideos').hidden = n !== 'videos';
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === n));
+  if (n === 'timers') buildVideos(); // stops any playing video
+  try { history.replaceState(null, '', n === 'videos' ? '#videos' : location.pathname + location.search); } catch (e) {}
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+buildVideos();
+if (location.hash === '#videos') showTab('videos');
 buildList(); setInterval(buildList, 60000);
 tick(); setInterval(tick, 250);
 </script>
