@@ -49,13 +49,18 @@ a.lnk:hover{filter:brightness(1.15) drop-shadow(0 0 10px currentColor);transform
 a.lnk:focus-visible{outline:3px solid var(--upd);outline-offset:3px}
 a.discord{background:var(--mut)}
 a.game{background:var(--raid);color:#fff}
-.tabs{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap}
-.tab{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px;padding:10px 20px}
-.tab[aria-selected=true]{background:var(--raid);border-color:var(--raid);color:#fff}
-.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-top:16px}
-.card.vid{--c:var(--mut);padding:14px 14px 16px}
+.tabs{display:flex;gap:10px;margin:0 0 22px;flex-wrap:wrap;padding:0 6px 14px;border-bottom:1px solid var(--line);position:relative}
+.tabs::after{content:"";position:absolute;left:0;bottom:-1px;width:90px;height:3px;background:var(--raid);box-shadow:0 0 12px var(--raid)}
+.tab{font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:1.5px;padding:12px 26px;clip-path:none;transform:skewX(-16deg);
+  background:linear-gradient(180deg,#0d0d1c,#05050d);border:1px solid var(--mut);color:var(--mut);transition:box-shadow .15s,background .15s,color .15s}
+.tab span{display:inline-block;transform:skewX(16deg)}
+.tab small{font-size:11px;opacity:.7;margin-right:6px}
+.tab:hover{background:#0b2a33;color:#fff;box-shadow:0 0 16px #05d9e888}
+.tab[aria-selected=true]{background:linear-gradient(180deg,#ff4d86,var(--raid));border-color:var(--raid);color:#fff;box-shadow:0 0 22px #ff2a6dbb,inset 0 0 12px #ffffff33;text-shadow:0 0 8px #fff8}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin-top:18px}
+.card.vid{--c:var(--mut);padding:16px 18px 18px}
 .card.vid:nth-child(3n+2){--c:var(--raid)} .card.vid:nth-child(3n){--c:var(--upd)}
-.vthumb,.vframe{display:block;width:100%;aspect-ratio:9/16;border:0;margin:0 0 12px;background:linear-gradient(160deg,#1a0a2e,#05050d);clip-path:none}
+.vthumb,.vframe{display:block;width:100%;aspect-ratio:9/15;border:0;margin:0 0 12px;background:linear-gradient(160deg,#1a0a2e,#05050d);clip-path:none}
 .vthumb{position:relative;cursor:pointer;padding:0;border:1px solid var(--c)}
 .vthumb:hover{background:linear-gradient(160deg,#2a0f45,#0a0a1c);color:inherit}
 .vthumb .num{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:13px;color:var(--c)}
@@ -136,8 +141,8 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     <a class="lnk game" href="https://www.roblox.com/games/92606991708989/Defeat-Anime-RNG" target="_blank" rel="noopener noreferrer">Play Defeat Anime RNG</a>
   </nav>
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-tab="timers" aria-selected="true">Timers</button>
-    <button class="tab" role="tab" data-tab="videos" aria-selected="false">TikTok Videos</button>
+    <button class="tab" role="tab" data-tab="timers" aria-selected="true"><span><small>01</small> Timers</span></button>
+    <button class="tab" role="tab" data-tab="videos" aria-selected="false"><span><small>02</small> TikTok Videos</span></button>
   </div>
 
   <div id="tabTimers">
