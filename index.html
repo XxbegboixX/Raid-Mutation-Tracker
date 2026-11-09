@@ -42,6 +42,13 @@ h1 span{color:var(--raid);text-shadow:0 0 22px #ff2a6dcc}
 .logo .sweep{transform-origin:32px 36px;animation:sweep 60s linear infinite}
 @keyframes sweep{to{transform:rotate(360deg)}}
 .sub{color:var(--dim);margin:10px 0 22px;font-size:18px}
+.links{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 20px}
+a.lnk{display:inline-block;text-decoration:none;font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;padding:12px 22px;color:#000;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:filter .15s,transform .15s}
+a.lnk:hover{filter:brightness(1.15) drop-shadow(0 0 10px currentColor);transform:translateY(-1px)}
+a.lnk:focus-visible{outline:3px solid var(--upd);outline-offset:3px}
+a.discord{background:var(--mut)}
+a.game{background:var(--raid);color:#fff}
 .clock{display:flex;gap:18px;flex-wrap:wrap;color:var(--dim);font-size:15px;margin-bottom:20px}
 .clock b{color:var(--mut);font-weight:700;font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
@@ -109,6 +116,10 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     <h1>World Raid <span>Crusher</span></h1>
   </div>
   <p class="sub">Raid every 2 hours. Mutation every 15 minutes. Both start counting from 4:00 PM (UTC+8).</p>
+  <nav class="links" aria-label="Community links">
+    <a class="lnk discord" href="https://discord.gg/defeatanimerng" target="_blank" rel="noopener noreferrer">Join our Discord</a>
+    <a class="lnk game" href="https://www.roblox.com/games/92606991708989/Defeat-Anime-RNG" target="_blank" rel="noopener noreferrer">Play Defeat Anime RNG</a>
+  </nav>
   <div class="clock">
     <div>Server time (UTC+8): <b id="srv">--:--:--</b></div>
     <div>Your time: <b id="loc">--:--:--</b></div>
@@ -177,6 +188,17 @@ input[type=range]{width:100%;accent-color:var(--upd)}
       <button id="test">Test alarm</button>
       <button id="notif">Allow notifications</button>
     </div>
+    <div class="row">
+      <label class="sw" for="snd">Alarm sound
+        <select id="snd">
+          <option value="default">Auto (siren / beeps)</option>
+          <option value="siren">Siren</option>
+          <option value="beeps">Double beeps</option>
+          <option value="neon">Neon Arp (cyberpunk)</option>
+          <option value="glitch">Glitch Hack (cyberpunk)</option>
+        </select>
+      </label>
+    </div>
     <div class="presets">
       <button data-v="30">OK</button>
       <button data-v="65">Loud</button>
@@ -185,7 +207,7 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     <label for="vol">Volume: <b id="volV">65</b>%</label>
     <input type="range" id="vol" min="0" max="100" value="65">
     <div class="warnbox" id="warn"></div>
-    <p class="note" style="margin-top:10px">Browsers only allow sound after you tap Enable. Keep this tab open (it can be in the background) for alarms to ring.</p>
+    <p class="note" style="margin-top:10px">Pick a sound to hear a short preview. Browsers only allow sound after your first tap on the page. Keep this tab open (it can be in the background) for alarms to ring.</p>
   </section>
 
   <section class="card upcoming">
@@ -229,7 +251,7 @@ const loc = t => new Date(t).toLocaleTimeString([], {hour: 'numeric', minute: '2
 const srv = t => new Date(t).toLocaleTimeString('en-US', {timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit'});
 
 // ---- Settings ----
-const defaults = {raidOn: true, mutOn: false, updOn: false, raidLead: 0, mutLead: 0, updLead: 0, vol: 65};
+const defaults = {raidOn: true, mutOn: false, updOn: false, raidLead: 0, mutLead: 0, updLead: 0, vol: 65, sound: 'default'};
 let S = {...defaults};
 try { Object.assign(S, JSON.parse(localStorage.getItem('wrc') || '{}')); } catch (e) {}
 const save = () => { try { localStorage.setItem('wrc', JSON.stringify(S)); } catch (e) {} };
@@ -238,7 +260,7 @@ function applyUI() {
   $('raidOn').checked = S.raidOn; $('mutOn').checked = S.mutOn;
   $('raidLead').value = S.raidLead; $('mutLead').value = S.mutLead;
   $('updOn').checked = S.updOn; $('updLead').value = S.updLead;
-  $('vol').value = S.vol; $('volV').textContent = S.vol;
+  $('snd').value = S.sound; $('vol').value = S.vol; $('volV').textContent = S.vol;
   $('warn').textContent = S.vol >= 90 ? 'Very loud. Keep headphones off your ears and your device away from your face.' : '';
 }
 applyUI();
@@ -265,12 +287,30 @@ function initAudio() {
 }
 const setGain = () => { if (master) master.gain.value = Math.pow(S.vol / 100, 1.6) * 1.4; };
 
+let timers = [];
 function startSound(kind) {
   initAudio(); setGain(); stopSound();
+  const snd = S.sound === 'default' ? (kind === 'raid' ? 'siren' : 'beeps') : S.sound;
   const out = ctx.createGain(); out.connect(master);
+  let dest = out;
   const t = ctx.currentTime;
-  if (kind === 'raid') {
-    // Siren: two square waves sweeping up and down
+  const loop = (fn, ms) => { let i = 0; fn(i++); timers.push(setInterval(() => fn(i++), ms)); };
+  const blip = (f, dur, type, vol, f2) => {
+    const o = ctx.createOscillator(), g = ctx.createGain(), n = ctx.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, n);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, n + dur);
+    g.gain.setValueAtTime(0.0001, n);
+    g.gain.exponentialRampToValueAtTime(vol, n + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, n + dur);
+    o.connect(g); g.connect(dest); o.start(n); o.stop(n + dur + 0.02);
+  };
+  const noise = (dur, vol) => {
+    const len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = buf; g.gain.value = vol;
+    s.connect(g); g.connect(dest); s.start();
+  };
+  if (snd === 'siren') {
     [0, 7].forEach(detune => {
       const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 760; o.detune.value = detune;
       const l = ctx.createOscillator(); l.type = 'triangle'; l.frequency.value = 1.6;
@@ -279,8 +319,7 @@ function startSound(kind) {
       o.start(t); l.start(t); nodes.push(o, l);
     });
     out.gain.value = 0.5;
-  } else {
-    // Mutation: fast double beeps
+  } else if (snd === 'beeps') {
     const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 1250;
     const g = ctx.createGain(); g.gain.value = 0;
     const l = ctx.createOscillator(); l.type = 'square'; l.frequency.value = 5;
@@ -289,13 +328,44 @@ function startSound(kind) {
     l.connect(d); d.connect(g.gain); bias.connect(g.gain);
     o.connect(g); g.connect(out); out.gain.value = 0.6;
     o.start(t); l.start(t); bias.start(t); nodes.push(o, l, bias);
+  } else if (snd === 'neon') {
+    // Neon Arp: detuned saw synth arpeggio in A minor with a pulsing bass
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.connect(out);
+    dest = lp; out.gain.value = 0.6;
+    const notes = [220, 261.63, 329.63, 440, 523.25, 440, 329.63, 261.63];
+    loop(i => {
+      const f = notes[i % 8];
+      blip(f, 0.14, 'sawtooth', 0.5); blip(f * 1.006, 0.14, 'sawtooth', 0.4);
+      if (i % 4 === 0) blip(f / 2, 0.3, 'square', 0.5);
+    }, 130);
+  } else if (snd === 'glitch') {
+    // Glitch Hack: bit-crushed zaps with static bursts and short gaps
+    const sh = ctx.createWaveShaper(), c = new Float32Array(256);
+    for (let i = 0; i < 256; i++) c[i] = Math.round((i / 128 - 1) * 4) / 4;
+    sh.curve = c; sh.connect(out); dest = sh; out.gain.value = 0.55;
+    const fs = [1760, 880, 1320, 660, 2093];
+    loop(i => {
+      const step = i % 10;
+      if (step > 6) return;
+      const f = fs[(i * 3 + step) % fs.length];
+      blip(f, 0.08, 'square', 0.5, f / 3);
+      if (step % 3 === 0) noise(0.06, 0.5);
+    }, 90);
   }
 }
-function stopSound() { nodes.forEach(n => { try { n.stop(); } catch (e) {} }); nodes = []; }
+function stopSound() {
+  nodes.forEach(n => { try { n.stop(); } catch (e) {} }); nodes = [];
+  timers.forEach(clearInterval); timers = [];
+}
+function beep() {
+  initAudio(); setGain();
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'square'; o.frequency.value = 988; g.gain.value = 0.3;
+  o.connect(g); g.connect(master); o.start(); o.stop(ctx.currentTime + 0.15);
+}
 
 function ring(kind, text) {
-  if (!ctx || ctx.state !== 'running') { /* sound not unlocked, still show banner */ }
-  else startSound(kind);
+  try { if (ctx) startSound(kind); } catch (e) {}
   ringing = true;
   $('ringT').textContent = text;
   $('ring').classList.add('on');
@@ -308,12 +378,22 @@ function ring(kind, text) {
 function stopRing() { ringing = false; stopSound(); $('ring').classList.remove('on'); clearTimeout(autoStop); }
 $('stop').onclick = stopRing;
 
-$('enable').onclick = () => {
-  initAudio();
-  $('enable').textContent = 'Alarm sound enabled';
-  $('enable').classList.remove('primary');
+function markReady() {
+  const b = $('enable'); b.textContent = 'Sound ready (tap for a beep)'; b.classList.remove('primary');
+}
+$('enable').onclick = () => { initAudio(); markReady(); beep(); };
+$('test').onclick = () => { initAudio(); markReady(); ring('raid', 'TEST ALARM'); };
+// Any first tap or key press on the page unlocks sound
+['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => {
+  if (!ctx) { initAudio(); markReady(); }
+}, {passive: true}));
+let prevT;
+$('snd').onchange = e => {
+  S.sound = e.target.value; save();
+  if (ringing) return;
+  initAudio(); markReady(); startSound('raid');
+  clearTimeout(prevT); prevT = setTimeout(() => { if (!ringing) stopSound(); }, 2500);
 };
-$('test').onclick = () => { initAudio(); $('enable').textContent = 'Alarm sound enabled'; $('enable').classList.remove('primary'); ring('raid', 'TEST ALARM'); };
 $('notif').onclick = () => { if ('Notification' in window) Notification.requestPermission(); };
 
 // ---- Tick ----
