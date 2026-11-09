@@ -49,6 +49,7 @@ a.lnk:hover{filter:brightness(1.15) drop-shadow(0 0 10px currentColor);transform
 a.lnk:focus-visible{outline:3px solid var(--upd);outline-offset:3px}
 a.discord{background:var(--mut)}
 a.game{background:var(--raid);color:#fff}
+a.info{background:var(--upd)}
 .tabs{display:flex;gap:10px;margin:0 0 22px;flex-wrap:wrap;padding:0 6px 14px;border-bottom:1px solid var(--line);position:relative}
 .tabs::after{content:"";position:absolute;left:0;bottom:-1px;width:90px;height:3px;background:var(--raid);box-shadow:0 0 12px var(--raid)}
 .tab{font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:1.5px;padding:12px 26px;clip-path:none;transform:skewX(-16deg);
@@ -139,6 +140,7 @@ input[type=range]{width:100%;accent-color:var(--upd)}
   <nav class="links" aria-label="Community links">
     <a class="lnk discord" href="https://discord.gg/defeatanimerng" target="_blank" rel="noopener noreferrer">Join our Discord</a>
     <a class="lnk game" href="https://www.roblox.com/games/92606991708989/Defeat-Anime-RNG" target="_blank" rel="noopener noreferrer">Play Defeat Anime RNG</a>
+    <a class="lnk info" href="https://trello.com/b/796b8LJh/defeat-anime-rng-official-trello" target="_blank" rel="noopener noreferrer">Game info / TRELLO</a>
   </nav>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="timers" aria-selected="true"><span><small>01</small> Timers</span></button>
@@ -510,12 +512,12 @@ $('vgrid').addEventListener('click', e => {
 function showTab(n) {
   $('tabTimers').hidden = n !== 'timers'; $('tabVideos').hidden = n !== 'videos';
   document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === n));
-  if (n === 'timers') buildVideos(); // stops any playing video
-  try { history.replaceState(null, '', n === 'videos' ? '#videos' : location.pathname + location.search); } catch (e) {}
+  if (n !== 'videos') buildVideos(); // stops any playing video
+  try { history.replaceState(null, '', n === 'timers' ? location.pathname + location.search : '#' + n); } catch (e) {}
 }
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => showTab(b.dataset.tab));
 buildVideos();
-if (location.hash === '#videos') showTab('videos');
+{ const h = location.hash.slice(1); if (h === 'videos') showTab(h); }
 buildList(); setInterval(buildList, 60000);
 tick(); setInterval(tick, 250);
 </script>
