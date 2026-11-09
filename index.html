@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Raid Crusher Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#12060a; --panel:#1e0b12; --line:#4a1a26; --text:#ffe9dc; --dim:#b08c86;
+  --raid:#ff3b2f; --mut:#39e6c4; --warn:#ffc83d;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:radial-gradient(900px 500px at 50% -10%,#3a0d16 0,transparent 70%),var(--bg);
+  color:var(--text); font-family:'Chakra Petch',system-ui,sans-serif; min-height:100vh;
+  padding:24px 16px 60px;
+}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-family:'Bungee',Impact,sans-serif;font-weight:400;font-size:clamp(28px,6vw,54px);margin:0;letter-spacing:1px;line-height:1}
+h1 span{color:var(--raid);text-shadow:0 0 24px #ff3b2f88}
+.sub{color:var(--dim);margin:8px 0 22px}
+.clock{display:flex;gap:18px;flex-wrap:wrap;color:var(--dim);font-size:14px;margin-bottom:20px}
+.clock b{color:var(--text);font-weight:600}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:20px;position:relative;overflow:hidden}
+.card.raid{border-color:var(--raid)}
+.card.mut{border-color:var(--mut)}
+.card h2{font-family:'Bungee',sans-serif;font-weight:400;margin:0 0 4px;font-size:22px}
+.raid h2{color:var(--raid)} .mut h2{color:var(--mut)}
+.note{color:var(--dim);font-size:13px;margin:0 0 10px}
+.time{font-family:'Bungee',monospace;font-size:clamp(44px,11vw,92px);line-height:1;letter-spacing:2px;margin:8px 0;font-variant-numeric:tabular-nums}
+.mut .time{font-size:clamp(40px,8vw,64px)}
+.raid .time{color:#fff;text-shadow:0 0 28px #ff3b2f99}
+.mut .time{text-shadow:0 0 22px #39e6c477}
+.bar{height:8px;background:#000;border-radius:4px;overflow:hidden;margin:10px 0 14px}
+.bar i{display:block;height:100%;width:0;background:var(--raid)}
+.mut .bar i{background:var(--mut)}
+.next{font-size:14px;color:var(--dim)}
+.next b{color:var(--text)}
+.soon .time{animation:pulse .6s infinite alternate}
+@keyframes pulse{from{opacity:1}to{opacity:.45}}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+label.sw{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px}
+input[type=checkbox]{accent-color:var(--raid);width:18px;height:18px}
+.mut input[type=checkbox]{accent-color:var(--mut)}
+select,button{font:inherit;color:var(--text);background:#000;border:2px solid var(--line);border-radius:4px;padding:8px 12px}
+button{cursor:pointer;font-weight:600}
+button:hover{border-color:var(--text)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.primary{background:var(--raid);border-color:var(--raid);color:#fff}
+.sound{margin-top:16px}
+.sound h3{margin:0 0 10px;font-family:'Bungee',sans-serif;font-weight:400;font-size:18px}
+input[type=range]{width:100%;accent-color:var(--warn)}
+.presets{display:flex;gap:8px;margin:10px 0}
+.presets button{flex:1}
+.warnbox{color:var(--warn);font-size:12px;margin-top:8px;min-height:16px}
+.upcoming{margin-top:16px}
+.upcoming h3{font-family:'Bungee',sans-serif;font-weight:400;font-size:18px;margin:0 0 8px}
+.upcoming ul{list-style:none;margin:0;padding:0}
+.upcoming li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.upcoming li span:last-child{color:var(--dim)}
+#ring{position:fixed;inset:0;background:#ff3b2fee;color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:9;text-align:center;padding:20px;animation:flash .5s infinite alternate}
+#ring.on{display:flex}
+@keyframes flash{from{background:#ff3b2fee}to{background:#7a0f08ee}}
+#ring h2{font-family:'Bungee',sans-serif;font-weight:400;font-size:clamp(34px,9vw,80px);margin:0}
+#ring button{font-size:24px;padding:16px 40px;background:#fff;color:#000;border-color:#fff}
+footer{margin-top:24px;color:var(--dim);font-size:12px}
+@media(prefers-reduced-motion:reduce){.soon .time,#ring{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>World Raid <span>Crusher</span></h1>
+  <p class="sub">Raid every 2 hours. Mutation every 15 minutes. Both start counting from 4:00 PM (UTC+8).</p>
+  <div class="clock">
+    <div>Server time (UTC+8): <b id="srv">--:--:--</b></div>
+    <div>Your time: <b id="loc">--:--:--</b></div>
+  </div>
+
+  <div class="grid">
+    <section class="card raid" id="raidCard">
+      <h2>World Raid Crusher</h2>
+      <p class="note">Starts in</p>
+      <div class="time" id="raidT">--:--:--</div>
+      <div class="bar"><i id="raidB"></i></div>
+      <div class="next">Next raid: <b id="raidAt">--</b> (your time) &middot; <b id="raidSrv">--</b> server</div>
+      <div class="row">
+        <label class="sw"><input type="checkbox" id="raidOn" checked> Alarm on</label>
+        <label class="sw">Ring
+          <select id="raidLead">
+            <option value="0">at start</option>
+            <option value="1">1 min before</option>
+            <option value="5">5 min before</option>
+            <option value="10">10 min before</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="card mut" id="mutCard">
+      <h2>Mutation</h2>
+      <p class="note">Next mutation in</p>
+      <div class="time" id="mutT">--:--</div>
+      <div class="bar"><i id="mutB"></i></div>
+      <div class="next">At <b id="mutAt">--</b> (your time)</div>
+      <div class="row">
+        <label class="sw"><input type="checkbox" id="mutOn"> Alarm on</label>
+        <label class="sw">Ring
+          <select id="mutLead">
+            <option value="0">at start</option>
+            <option value="1">1 min before</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <section class="card sound">
+    <h3>Alarm sound</h3>
+    <div class="row" style="margin-top:0">
+      <button class="primary" id="enable">Enable alarm sound</button>
+      <button id="test">Test alarm</button>
+      <button id="notif">Allow notifications</button>
+    </div>
+    <div class="presets">
+      <button data-v="30">OK</button>
+      <button data-v="65">Loud</button>
+      <button data-v="100">MAX</button>
+    </div>
+    <label for="vol">Volume: <b id="volV">65</b>%</label>
+    <input type="range" id="vol" min="0" max="100" value="65">
+    <div class="warnbox" id="warn"></div>
+    <p class="note" style="margin-top:10px">Browsers only allow sound after you tap Enable. Keep this tab open (it can be in the background) for alarms to ring.</p>
+  </section>
+
+  <section class="card upcoming">
+    <h3>Upcoming raids (your time)</h3>
+    <ul id="list"></ul>
+  </section>
+
+  <footer>Schedule anchor: 16:00 UTC+8 (08:00 UTC). Change ANCHOR in the script if the schedule shifts.</footer>
+</div>
+
+<div id="ring" role="alertdialog" aria-live="assertive">
+  <h2 id="ringT">RAID TIME!</h2>
+  <button id="stop">Stop alarm</button>
+</div>
+
+<script>
+// ---- Schedule (edit here) ----
+// 16:00 in UTC+8 = 08:00 UTC. Any date works; only the time-of-day matters.
+const ANCHOR = Date.UTC(2024, 0, 1, 8, 0, 0);
+const RAID_MS = 2 * 60 * 60 * 1000;
+const MUT_MS  = 15 * 60 * 1000;
+
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const fmt = ms => {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return h ? `${pad(h)}:${pad(m)}:${pad(x)}` : `${pad(m)}:${pad(x)}`;
+};
+const loc = t => new Date(t).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+const srv = t => new Date(t).toLocaleTimeString('en-US', {timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit'});
+
+// ---- Settings ----
+const defaults = {raidOn: true, mutOn: false, raidLead: 0, mutLead: 0, vol: 65};
+let S = {...defaults};
+try { Object.assign(S, JSON.parse(localStorage.getItem('wrc') || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem('wrc', JSON.stringify(S)); } catch (e) {} };
+
+function applyUI() {
+  $('raidOn').checked = S.raidOn; $('mutOn').checked = S.mutOn;
+  $('raidLead').value = S.raidLead; $('mutLead').value = S.mutLead;
+  $('vol').value = S.vol; $('volV').textContent = S.vol;
+  $('warn').textContent = S.vol >= 90 ? 'Very loud. Keep headphones off your ears and your device away from your face.' : '';
+}
+applyUI();
+$('raidOn').onchange = e => { S.raidOn = e.target.checked; save(); };
+$('mutOn').onchange = e => { S.mutOn = e.target.checked; save(); };
+$('raidLead').onchange = e => { S.raidLead = +e.target.value; save(); };
+$('mutLead').onchange = e => { S.mutLead = +e.target.value; save(); };
+$('vol').oninput = e => { S.vol = +e.target.value; save(); applyUI(); if (ringing) setGain(); };
+document.querySelectorAll('.presets button').forEach(b => b.onclick = () => { S.vol = +b.dataset.v; save(); applyUI(); if (ringing) setGain(); });
+
+// ---- Audio (synthesized, no files needed) ----
+let ctx, master, comp, nodes = [], ringing = false, autoStop;
+function initAudio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.ratio.value = 6;
+    master = ctx.createGain();
+    master.connect(comp); comp.connect(ctx.destination);
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+}
+const setGain = () => { if (master) master.gain.value = Math.pow(S.vol / 100, 1.6) * 1.4; };
+
+function startSound(kind) {
+  initAudio(); setGain(); stopSound();
+  const out = ctx.createGain(); out.connect(master);
+  const t = ctx.currentTime;
+  if (kind === 'raid') {
+    // Siren: two square waves sweeping up and down
+    [0, 7].forEach(detune => {
+      const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 760; o.detune.value = detune;
+      const l = ctx.createOscillator(); l.type = 'triangle'; l.frequency.value = 1.6;
+      const d = ctx.createGain(); d.gain.value = 320;
+      l.connect(d); d.connect(o.frequency); o.connect(out);
+      o.start(t); l.start(t); nodes.push(o, l);
+    });
+    out.gain.value = 0.5;
+  } else {
+    // Mutation: fast double beeps
+    const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 1250;
+    const g = ctx.createGain(); g.gain.value = 0;
+    const l = ctx.createOscillator(); l.type = 'square'; l.frequency.value = 5;
+    const d = ctx.createGain(); d.gain.value = 0.5;
+    const bias = ctx.createConstantSource(); bias.offset.value = 0.5;
+    l.connect(d); d.connect(g.gain); bias.connect(g.gain);
+    o.connect(g); g.connect(out); out.gain.value = 0.6;
+    o.start(t); l.start(t); bias.start(t); nodes.push(o, l, bias);
+  }
+}
+function stopSound() { nodes.forEach(n => { try { n.stop(); } catch (e) {} }); nodes = []; }
+
+function ring(kind, text) {
+  if (!ctx || ctx.state !== 'running') { /* sound not unlocked, still show banner */ }
+  else startSound(kind);
+  ringing = true;
+  $('ringT').textContent = text;
+  $('ring').classList.add('on');
+  clearTimeout(autoStop);
+  autoStop = setTimeout(stopRing, kind === 'raid' ? 45000 : 12000);
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try { new Notification(text); } catch (e) {}
+  }
+}
+function stopRing() { ringing = false; stopSound(); $('ring').classList.remove('on'); clearTimeout(autoStop); }
+$('stop').onclick = stopRing;
+
+$('enable').onclick = () => {
+  initAudio();
+  $('enable').textContent = 'Alarm sound enabled';
+  $('enable').classList.remove('primary');
+};
+$('test').onclick = () => { initAudio(); $('enable').textContent = 'Alarm sound enabled'; $('enable').classList.remove('primary'); ring('raid', 'TEST ALARM'); };
+$('notif').onclick = () => { if ('Notification' in window) Notification.requestPermission(); };
+
+// ---- Tick ----
+const last = {raid: -1, mut: -1};
+function check(key, now, period, lead, on, kind, text) {
+  if (!on) return;
+  const idx = Math.floor((now - ANCHOR) / period);
+  for (const k of [idx, idx + 1]) {
+    const fireAt = ANCHOR + k * period - lead * 60000;
+    if (now >= fireAt && now < fireAt + 4000 && last[key] !== k) {
+      last[key] = k; ring(kind, text);
+    }
+  }
+}
+
+function tick() {
+  const now = Date.now();
+  const d = new Date(now);
+  $('srv').textContent = d.toLocaleTimeString('en-US', {timeZone: 'Asia/Manila', hour12: false});
+  $('loc').textContent = d.toLocaleTimeString([], {hour12: false});
+
+  const ri = Math.floor((now - ANCHOR) / RAID_MS), rNext = ANCHOR + (ri + 1) * RAID_MS, rLeft = rNext - now;
+  $('raidT').textContent = fmt(rLeft);
+  $('raidB').style.width = (100 - rLeft / RAID_MS * 100) + '%';
+  $('raidAt').textContent = loc(rNext); $('raidSrv').textContent = srv(rNext);
+  $('raidCard').classList.toggle('soon', rLeft < 60000);
+
+  const mi = Math.floor((now - ANCHOR) / MUT_MS), mNext = ANCHOR + (mi + 1) * MUT_MS, mLeft = mNext - now;
+  $('mutT').textContent = fmt(mLeft);
+  $('mutB').style.width = (100 - mLeft / MUT_MS * 100) + '%';
+  $('mutAt').textContent = loc(mNext);
+  $('mutCard').classList.toggle('soon', mLeft < 10000);
+
+  check('raid', now, RAID_MS, S.raidLead, S.raidOn, 'raid', S.raidLead ? `RAID IN ${S.raidLead} MIN!` : 'WORLD RAID CRUSHER NOW!');
+  check('mut', now, MUT_MS, S.mutLead, S.mutOn, 'mut', S.mutLead ? 'MUTATION IN 1 MIN' : 'MUTATION NOW!');
+
+  document.title = `${fmt(rLeft)} Raid | ${fmt(mLeft)} Mut`;
+}
+
+function buildList() {
+  const now = Date.now(), ri = Math.floor((now - ANCHOR) / RAID_MS);
+  $('list').innerHTML = [1, 2, 3, 4, 5].map(i => {
+    const t = ANCHOR + (ri + i) * RAID_MS;
+    const day = new Date(t).toLocaleDateString([], {weekday: 'short'});
+    return `<li><span>${day} ${loc(t)}</span><span>${srv(t)} server</span></li>`;
+  }).join('');
+}
+buildList(); setInterval(buildList, 60000);
+tick(); setInterval(tick, 250);
+</script>
+</body>
+</html>
