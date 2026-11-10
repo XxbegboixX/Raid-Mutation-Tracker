@@ -85,6 +85,15 @@ a.info{background:var(--upd)}
 .grid2 .card.upd{margin-top:0}
 .grid2 .upd .time{font-size:clamp(24px,4.6vw,44px)}
 @media(max-width:760px){.grid.grid2{grid-template-columns:1fr}}
+.clist{display:grid;gap:12px;max-width:760px}
+.crow{--c:var(--mut);display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;background:linear-gradient(135deg,#12122a,var(--panel));border:1px solid var(--line);border-left:4px solid var(--c);
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.crow:nth-child(3n+2){--c:var(--raid)} .crow:nth-child(3n){--c:var(--upd)}
+.ccode b{display:block;font-family:'Orbitron',sans-serif;font-size:20px;letter-spacing:1px;color:var(--c);text-shadow:0 0 10px var(--c);user-select:all}
+.ccode span{color:var(--dim);font-size:17px}
+button.copy{min-width:110px;flex:none;border-color:var(--c);color:var(--c)}
+button.copy:hover{background:var(--c);color:#000}
+button.copy.done{background:var(--upd);border-color:var(--upd);color:#000}
 .card h2{font-family:'Orbitron',sans-serif;font-weight:700;margin:0 0 4px;font-size:20px;letter-spacing:1px;color:var(--c);text-shadow:0 0 12px var(--c)}
 .note{color:var(--dim);font-size:15px;margin:0 0 10px}
 .time{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(38px,9.5vw,80px);line-height:1;letter-spacing:2px;margin:8px 0;font-variant-numeric:tabular-nums;color:#fff;
@@ -151,6 +160,7 @@ input[type=range]{width:100%;accent-color:var(--upd)}
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="timers" aria-selected="true"><span><small>01</small> Timers</span></button>
     <button class="tab" role="tab" data-tab="videos" aria-selected="false"><span><small>02</small> TikTok Videos</span></button>
+    <button class="tab" role="tab" data-tab="codes" aria-selected="false"><span><small>03</small> CODES</span></button>
   </div>
 
   <div id="tabTimers">
@@ -275,6 +285,11 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     <p><a class="lnk game" href="https://www.tiktok.com/@eme_ni_emerot" target="_blank" rel="noopener noreferrer">Follow on TikTok</a></p>
     <p class="vnote">Video says "This content is blocked"? Your browser's ad or tracker blocker is blocking TikTok. Turn the blocker off for this site (in Vivaldi, click the shield icon in the address bar), or use the "Open on TikTok" link under each video.</p>
     <div class="vgrid" id="vgrid"></div>
+  </div>
+
+  <div id="tabCodes" hidden>
+    <p class="sub" style="margin-top:0">Tap Copy, then paste the code in the game. Codes can expire, so redeem them soon.</p>
+    <div class="clist" id="clist"></div>
   </div>
 
 </div>
@@ -547,14 +562,38 @@ $('vgrid').addEventListener('click', e => {
   b.replaceWith(f);
 });
 function showTab(n) {
-  $('tabTimers').hidden = n !== 'timers'; $('tabVideos').hidden = n !== 'videos';
+  $('tabTimers').hidden = n !== 'timers'; $('tabVideos').hidden = n !== 'videos'; $('tabCodes').hidden = n !== 'codes';
   document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === n));
   if (n !== 'videos') buildVideos(); // stops any playing video
   try { history.replaceState(null, '', n === 'timers' ? location.pathname + location.search : '#' + n); } catch (e) {}
 }
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+const CODES = [
+  {c: 'upd12luck', r: 'x2 Luck Boost for 1 hour'},
+  {c: 'upd12gold', r: 'x2 Gold Boost for 3 hours'},
+  {c: 'choom', r: '300 Trait Shards'},
+  {c: 'nightcity', r: '250 Trait Shards'},
+  {c: 'cyberpunk', r: '50 Star Shards'}
+];
+$('clist').innerHTML = CODES.map(x => `<div class="crow"><div class="ccode"><b>${x.c}</b><span>${x.r}</span></div><button class="copy" data-c="${x.c}">Copy</button></div>`).join('');
+function fallbackCopy(t) {
+  const a = document.createElement('textarea'); a.value = t; a.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(a); a.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  a.remove();
+}
+$('clist').addEventListener('click', e => {
+  const b = e.target.closest('.copy'); if (!b) return;
+  const t = b.dataset.c;
+  const done = () => {
+    b.textContent = 'Copied!'; b.classList.add('done');
+    clearTimeout(b.resetT); b.resetT = setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('done'); }, 1800);
+  };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, () => { fallbackCopy(t); done(); });
+  else { fallbackCopy(t); done(); }
+});
 buildVideos();
-{ const h = location.hash.slice(1); if (h === 'videos') showTab(h); }
+{ const h = location.hash.slice(1); if (h === 'videos' || h === 'codes') showTab(h); }
 buildList(); setInterval(buildList, 60000);
 tick(); setInterval(tick, 250);
 </script>
