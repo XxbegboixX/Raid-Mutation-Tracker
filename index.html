@@ -58,18 +58,6 @@ a.info{background:var(--upd)}
 .tab small{font-size:11px;opacity:.7;margin-right:6px}
 .tab:hover{background:#0b2a33;color:#fff;box-shadow:0 0 16px #05d9e888}
 .tab[aria-selected=true]{background:linear-gradient(180deg,#ff4d86,var(--raid));border-color:var(--raid);color:#fff;box-shadow:0 0 22px #ff2a6dbb,inset 0 0 12px #ffffff33;text-shadow:0 0 8px #fff8}
-.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin-top:18px}
-.card.vid{--c:var(--mut);padding:16px 18px 18px}
-.card.vid:nth-child(3n+2){--c:var(--raid)} .card.vid:nth-child(3n){--c:var(--upd)}
-.vthumb,.vframe{display:block;width:100%;aspect-ratio:9/15;border:0;margin:0 0 12px;background:linear-gradient(160deg,#1a0a2e,#05050d);clip-path:none}
-.vthumb{position:relative;cursor:pointer;padding:0;border:1px solid var(--c)}
-.vthumb:hover{background:linear-gradient(160deg,#2a0f45,#0a0a1c);color:inherit}
-.vthumb .num{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:13px;color:var(--c)}
-.vthumb .play{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:2px solid var(--c);border-radius:50%;box-shadow:0 0 18px var(--c)}
-.vthumb .play::after{content:"";position:absolute;left:25px;top:18px;border-left:20px solid var(--c);border-top:13px solid transparent;border-bottom:13px solid transparent}
-.card.vid h3{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;line-height:1.2;margin:0 0 8px}
-.card.vid a{color:var(--c);font-size:15px;font-weight:700}
-.vnote{color:var(--dim);font-size:15px;max-width:720px;margin:0;border-left:3px solid var(--upd);padding-left:12px}
 .clock{display:flex;gap:18px;flex-wrap:wrap;color:var(--dim);font-size:15px;margin-bottom:20px}
 .clock b{color:var(--mut);font-weight:700;font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
@@ -94,6 +82,18 @@ a.info{background:var(--upd)}
 button.copy{min-width:110px;flex:none;border-color:var(--c);color:var(--c)}
 button.copy:hover{background:var(--c);color:#000}
 button.copy.done{background:var(--upd);border-color:var(--upd);color:#000}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin-top:18px}
+.card.vid{--c:var(--mut);padding:16px 18px 18px}
+.card.vid:nth-child(3n+2){--c:var(--raid)} .card.vid:nth-child(3n){--c:var(--upd)}
+.vthumb,.vframe{display:block;width:100%;aspect-ratio:9/15;border:0;margin:0 0 12px;background:linear-gradient(160deg,#1a0a2e,#05050d);clip-path:none}
+.vthumb{position:relative;cursor:pointer;padding:0;border:1px solid var(--c)}
+.vthumb:hover{background:linear-gradient(160deg,#2a0f45,#0a0a1c);color:inherit}
+.vthumb .num{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:13px;color:var(--c)}
+.vthumb .play{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:2px solid var(--c);border-radius:50%;box-shadow:0 0 18px var(--c)}
+.vthumb .play::after{content:"";position:absolute;left:25px;top:18px;border-left:20px solid var(--c);border-top:13px solid transparent;border-bottom:13px solid transparent}
+.card.vid h3{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;line-height:1.2;margin:0 0 8px}
+.card.vid a{color:var(--c);font-size:15px;font-weight:700}
+.vnote{color:var(--dim);font-size:15px;max-width:720px;margin:0;border-left:3px solid var(--upd);padding-left:12px}
 .card h2{font-family:'Orbitron',sans-serif;font-weight:700;margin:0 0 4px;font-size:20px;letter-spacing:1px;color:var(--c);text-shadow:0 0 12px var(--c)}
 .note{color:var(--dim);font-size:15px;margin:0 0 10px}
 .time{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(38px,9.5vw,80px);line-height:1;letter-spacing:2px;margin:8px 0;font-variant-numeric:tabular-nums;color:#fff;
@@ -151,7 +151,7 @@ input[type=range]{width:100%;accent-color:var(--upd)}
     </svg>
     <h1>Defeat Anime <span>RNG Timers</span></h1>
   </div>
-  <p class="sub">World Raid Crusher every 2 hours, Mutation every 15 minutes and Merchant every 30 minutes (:00 and :30). Raid and Mutation count from 4:00 PM (UTC+8).</p>
+  <p class="sub">World Raid Crusher every 2 hours, Mutation every 15 minutes and Merchant every 30 minutes (:00 and :30).</p>
   <nav class="links" aria-label="Community links">
     <a class="lnk discord" href="https://discord.gg/defeatanimerng" target="_blank" rel="noopener noreferrer">Join our Discord</a>
     <a class="lnk game" href="https://www.roblox.com/games/92606991708989/Defeat-Anime-RNG" target="_blank" rel="noopener noreferrer">Play Defeat Anime RNG</a>
